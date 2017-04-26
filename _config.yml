@@ -1,7 +1,7 @@
 # ----------- CONFIGURABLE START -----------
 title:            "cuipf blog"
 description:      "coding"
-url:              https://cuipf0823.github.io/  # Site url, without a slash at the end.
+url:              https://cuipf0823.github.io  # Site url, without a slash at the end.
 signoff:          "cuipf" # Your name
 facebook_appid:   # APP ID for like button, remove from /_includes/share.html if unwanted.
 google_analytics: # Set tracking, remove from /javascripts/basic.js if unwanted.
