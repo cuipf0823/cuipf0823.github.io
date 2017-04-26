@@ -1,3 +1,3 @@
-source 'https://rubygems.org'
-gem 'jekyll'
-gem 'jekyll-sitemap'
+source 'http://rubygems.org'
+
+gem 'github-pages'
