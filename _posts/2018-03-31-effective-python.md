@@ -48,7 +48,7 @@ def to_bytes(bytes_or_str):
 * 把复杂的表达式移入辅助函数之中, 如果要反复使用相同的逻辑, 更应该这么做;
 * 使用"if/else"表达式, 要比用"or"和"and"这样的boolean操作符写成的表达式更加的清晰;
 
-```
+```python
 //第一种
 red = int(values.get('red', [''])[0] or 0)
 
@@ -93,8 +93,7 @@ python提供了生成器表达式, 它是对列表推导和生成器的一种泛
 
 把实现列表推导所用的那种写法放在一对括号内, 就构成了生成器表达式; 
 
-```
-
+```python
 it = (len(x) for x in open('c://111.ini'))
 print(it)
 <generator object <genexpr> at 0x072DB0F0>
@@ -113,7 +112,7 @@ print(next(it))
 
 ## 问题
 
-```
+```python
 for i in range(len(a)):
     print(a[i])
 
@@ -131,7 +130,7 @@ h
 ## 解决
 使用enumerate代替range; 
 
-```
+```python
 for i, item in enumerate(a):
     print('{}.{}'.format(i+1, item))
 1.a
@@ -161,7 +160,7 @@ for i, item in enumerate(a, 3):
 * 如果提供的生成器长度不等, zip会自动提前终止(按照短的长度);
 * itertools内置模块中zip_longest函数可以平行地遍历多个迭代器, 而不用在乎他们长度是否相等;
 
-```
+```python
 for name, alphy in zip(names, a):
     print('{}.{}'.format(name, alphy))
 
