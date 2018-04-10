@@ -74,7 +74,7 @@ red = get_first_int(values, 'red')
 * 对原列表进行切割后, 会产生另外一份全新的列表; 在切割后得到的新列表上进行修改, 不会影响原列表; 
 * 在赋值时候对左侧列表使用切割操作, 会把列表中处于指定范围内的对象替换为新值, 位于切片范围前后的值保留不变, 列表会根据新值的个数相应的扩张或者收缩;
 
-```
+```python
 In [14]: a
 Out[14]: ['a', 'b', 'c', 'e', 'f', 'g', 'h']
 In [15]: a[2:7] = [33, 44, 55]
@@ -94,6 +94,7 @@ python提供了生成器表达式, 它是对列表推导和生成器的一种泛
 把实现列表推导所用的那种写法放在一对括号内, 就构成了生成器表达式; 
 
 ```python
+
 it = (len(x) for x in open('c://111.ini'))
 print(it)
 <generator object <genexpr> at 0x072DB0F0>
@@ -187,4 +188,44 @@ None.h
 * 在python中允许for以及while循环的内部语句块之后紧跟一个else块;
 * 只要主循环体没有遇到break, 循环后面的else块才会执行; 
 * 不要在循环后面使用else模块, 这种写法不直观且容易引起误解; 
+
+# 尽量使用异常来表示特殊情况, 而不是返回None
+
+## 问题
+```python
+def divide(a, b):
+    try:
+        return a/b
+    except ZeroDivisionError:
+        return None
+```
+编写工具函数时候, 我们喜欢给None赋予特殊意义, 有时候这么做是不合理的; 设想如果分子"a=0", 那么这个函数返回为0;
+调用者在调用之后, 使用if判断无论是"0", "None"和"False"都是等效的; 我们一般不会去专门判断是否等于None. 这样编写函数, 存在很大问题;
+
+## 解决
+
+```python
+
+def divide(a, b):
+    try:
+        return a/b
+    except ZeroDivisionError as e:
+        raise ValueError('Invalid inputs') from e
+
+x, y = 5, 2
+try:
+    result = divide(x, y)
+except ValueError:
+    print('Invalid inputs')
+else:
+    print('result is {}'.format(result))
+
+```
+编写这样的函数, 我们可以不使用None, 而是把异常抛给上一级, 使得调用者必须应对它; 我们可以使用相应的注释解释清楚; 
+
+## 说明
+
+函数在遇到特殊情况下, 应该抛出异常, 而不是返回None. 调用者看到该函数的文档中描述的异常之后, 应该编写相应的代码处理它们; 
+
+
 
