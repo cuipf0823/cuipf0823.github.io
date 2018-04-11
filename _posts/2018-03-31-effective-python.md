@@ -227,5 +227,109 @@ else:
 
 函数在遇到特殊情况下, 应该抛出异常, 而不是返回None. 调用者看到该函数的文档中描述的异常之后, 应该编写相应的代码处理它们; 
 
+# 了解如何在闭包里使用外围作用域中的变量
+
+## 问题
+
+```python
+def sort_priority(values, group):
+    found = False
+
+    def helper(x):
+        if x in group:
+            # 这里的found并不是上面的found，而是重新定义了found
+            found = True
+            return 0, x
+        return 1, x
+    values.sort(key=helper)
+    return found
+```
+上述函数功能很简单, 对数字列表排序, 并把出现在group中的数字, 放在出现group外的那些数字之外; 
+
+当然, 上述代码排序没有问题, 但是返回值found不对, 问题出在哪里?
+
+在表达式中引用变量, python解释器将按如下顺序遍历各作用域, 以解析该引用:
+1. 当前函数作用域; 
+2. 包含外围作用域(例如: 包含当前函数的其他函数);
+3. 包含当前代码的那个模块的作用域(也叫全局作用域, global scope);
+4. 内置作用域(也就是包含len及str等函数的那个作用域);
+如果上面这些地方都没有定义过名称相符的变量, 那就抛出NameError异常; 
+
+给变量赋值时, 规则所有不同, 如果当前作用域内已经定义了这个变量, 那么该变量就会具备新值，若当前作用域没有这个变量，python则会把这次赋值视为该变量的定义； 
+上面返回值错误问题，就是我们常常成为的作用域bug，这是python设计有意为之，防止函数中局部变量污染外部模块； 
+
+## 解决
+python3中有一种特殊的写法，能够获取闭包内的数据，我们可以使用**nolocal**语句表明我们的意图，也就是：给相关变量赋值的时候，应该在上层作用域查找该变量；
+**nolocal**的唯一限制在于，他不能延伸到模块级别，这是为了防止它污染全局作用域；
+
+```python
+def sort_priority(values, group):
+    found = False
+
+    def helper(x):
+        nolocal found
+        if x in group:
+            # 这里的found并不是上面的found，而是重新定义了found
+            found = True
+            return 0, x
+        return 1, x
+    values.sort(key=helper)
+    return found
+```
+
+**注意**
+* 千万不要乱用nolocal，特别是在复杂的函数，修饰某个变量的nolocal语句可能和赋值操作离的很远，很容易导致代码难以理解； 
+* python2并不支持**nolocal**，程序可以使用可变值（eg：包含单个元素的列表）来实现与nolocal相仿的机制，如下;
+
+```python
+
+def sort_priority(values, group):
+    found = [False]
+
+    def helper(x):
+        if x in group:
+            found[0] = True
+            return 0, x
+        return 1, x
+    values.sort(key=helper)
+    return found[0]
+
+```
+
+# 考虑使用生成器来改写直接返回列表的函数
+
+如果函数要产生一系列的结果，最简单的方式就是返回一个包含这些结果的列表；
+
+```python 
+def index_words(text):
+    result = []
+    if text:
+        result.append(0)
+    for index, letter in enumerate(text):
+        if letter == ' ':
+            result.append(index + 1)
+    return result
+```
+这个函数有两个问题： 
+1. 函数代码显得很臃肿；
+2. 如果传递的参数text非常巨大，很可能会造成内存消尽并崩溃； 
+
+我们可以使用生成器的方式替换上述方法，这样代码更加清晰，无论输入量和输出量有多大都不会影响执行时消耗的内存；
+优化修改如下： 
+
+```python
+def index_words_iter(text):
+    if text:
+        yield 0
+    for index, letter in enumerate(text):
+        if letter == ' ':
+            yield index + 1
+
+# 调用该函数
+list1 = list(index_words_iter(text))
+
+```
+
+
 
 
