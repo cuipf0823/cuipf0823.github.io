@@ -330,6 +330,102 @@ list1 = list(index_words_iter(text))
 
 ```
 
+# 使用数量可变的位置参数减少视觉杂讯
 
+```python
 
+def log_old(message, values):
+    if not values:
+        print(message)
+    else:
+        values_str = ','.join(str(x) for x in values)
+        print('{}.{}'.format(message, values_str))
+
+def log(message, *values):
+    if not values:
+        print(message)
+    else:
+        values_str = ','.join(str(x) for x in values)
+        print('{}.{}'.format(message, values_str))
+
+log_old('hi, there', [])
+log_old('my scores are', [1, 2])
+
+log('hi, there')
+log('my scores are', 1, 2)
+favor = [1, 2, 3, 4, 5, 6, 7]
+#如果favor足够大，可能会存在消耗大量内存的情况，并导致程序崩溃
+log('my favor:', *favor)
+```
+相比而言： 
+1. log函数的调用比log_old更加的友好，没有第二参数时候，无需传入空的列表；
+
+但是，log函数有哪些隐藏的问题呢？
+1. 变长参数在传给函数时候，总是要先转化为元组（tuple），这意味着，如果使用带有“*”操作符的生成器为参数，来调用这种函数python会把该生成器完整的迭代一轮放入元组中，可能会存在消耗大量内存的情况，并导致程序崩溃；
+2. 使用\*arg参数后，以后需要为该函数添加新的参数，就必须修改原有的代码，不方便扩展（*arg必须为函数的最后一个参数）；
+
+# 使用None和文档字符串来描述具有动态默认值的参数
+
+## 问题
+
+有时候，我们会采用一种非静态的类型，来做关键字参数的默认值，如下示例：
+
+```python
+
+def log_default(message, when=datetime.now()):
+    print('{}:{}'.format(when, message))
+ 
+# 调用  
+log_default('Hi there')
+time.sleep(1)
+log_default('Hi again')
+
+# 输出
+2018-04-12 15:52:44.755341:Hi there
+2018-04-12 15:52:44.755341:Hi again
+```
+从输出可以看出两条消息的时间戳（timestamp）是一样的，这明显不是我们想要的；
+也就是说“datetime.now()”只在函数定义的时候执行了一次；包含这段代码的模块一旦加载进来，参数的默认值就固定不变了，程序不会再次执行datetime。
+
+## 解决
+在python中，如果想要正确的实现默认值，习惯上是把默认值设为None，并在文档字符串里面把None所对应的实际行为描述出来即可；优化如下：
+
+```python
+
+def log_default_none(message, when=None):
+    """
+     log a message with a timestamp.
+     args:
+     message: Message to print
+     when: datetime of when the message occured.
+           Defaults to the present time.
+    """
+    when = datetime.now() if when is None else when
+    print('{}:{}'.format(when, message))
+```
+
+## 注意
+如果参数的实际默认值是可变（mutable）参数，那就一定要记得用None作为形式上的默认值。
+
+```python 
+
+def decode(data, default={}):
+    try:
+        return json.loads(data)
+    except ValueError:
+        return default
+
+# 调用
+foo = decode('bad data')
+foo['stuff'] = 5
+bar = decode('also bad')
+bar['mess'] = 1
+print('Foo:', foo)
+print('Bar:', bar)
+
+# 输出
+Foo: {'stuff': 5, 'mess': 1}
+Bar: {'stuff': 5, 'mess': 1}
+```
+foo和bar是同一个字典，这明显不是我们想要的，解决方式同样是：把关键字参数的默认值设为None，并在函数的文档字符串中描述它的实际行为；
 
