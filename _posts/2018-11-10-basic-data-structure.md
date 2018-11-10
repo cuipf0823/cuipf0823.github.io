@@ -1,7 +1,7 @@
 ---
 # layout: post
-title: Effective python读书笔记
-category: python
+title: 基础总结-数据结构
+category: basic data-structure
 ---
 
 
